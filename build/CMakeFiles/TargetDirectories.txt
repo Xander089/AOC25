@@ -1,3 +1,0 @@
-/mnt/c/Users/alessandrol/Desktop/S&T/AOC/build/CMakeFiles/app.dir
-/mnt/c/Users/alessandrol/Desktop/S&T/AOC/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/alessandrol/Desktop/S&T/AOC/build/CMakeFiles/rebuild_cache.dir
