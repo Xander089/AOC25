@@ -1,4 +1,6 @@
 {
     "files.associations": {
+        "common.h": "c",
+        "day1.h": "c"
     }
 }

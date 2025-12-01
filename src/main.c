@@ -1,6 +1,10 @@
 #include <stdio.h>
+#include "Structures.h"
+#include "Days.h"
 
 int main() {
-    printf("Hello, World!\n");
+    
+    d1_execute();
+
     return 0;
 }
