@@ -1,17 +1,42 @@
 #include "Day1.h"
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
-#define _INVALID_LINE_ -100000
-#define CIRCULAR_BUFFER_SIZE 100
-#define INITIAL_POSITION 50
+int d1_execute()
+{
+    const char* fileName = "input1.txt";
+    FILE* fp = fopen(fileName, "r");
 
-typedef struct Data{
-    int currentPosition;
-    int currentRotationAmount;
-    int zeroCount;
-} Data;
+    if (fp == NULL) return -1;
+   
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread; // number of characters read with getline
+
+    Data *data = malloc(sizeof(Data));
+    data->currentPosition = INITIAL_POSITION;
+    data->currentRotationAmount = 0;
+    data->zeroCount = 0;
+
+    while ((nread = getline(&line, &len, fp)) != -1) {
+
+        int amount = parseRotation(line, len, nread);
+        data->currentRotationAmount = amount;
+        if(amount == _INVALID_LINE_)
+            continue;
+
+        applyRotation(data);
+
+    }
+
+    int result = data->zeroCount;
+   
+    free(line);
+    free(data);
+    fclose(fp);
+
+    printf("Day 1 - Puzzle 2: %d\n", result);
+    return result;
+}
 
 void applyRotation(Data *data){
        
@@ -68,41 +93,4 @@ int parseRotation(
    
     int amount = (int) val;
     return amount * (dir == 'R' ? 1 : -1);
-}
-
-int d1_execute()
-{
-    const char* fileName = "input1.txt";
-    FILE* fp = fopen(fileName, "r");
-
-    if (fp == NULL) return -1;
-   
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t nread; // number of characters read with getline
-
-    Data *data = malloc(sizeof(Data));
-    data->currentPosition = INITIAL_POSITION;
-    data->currentRotationAmount = 0;
-    data->zeroCount = 0;
-
-    while ((nread = getline(&line, &len, fp)) != -1) {
-
-        int amount = parseRotation(line, len, nread);
-        data->currentRotationAmount = amount;
-        if(amount == _INVALID_LINE_)
-            continue;
-
-        applyRotation(data);
-
-    }
-
-    int result = data->zeroCount;
-   
-    free(line);
-    free(data);
-    fclose(fp);
-
-    printf("Day 1 - Puzzle 2: %d\n", result);
-    return result;
 }
