@@ -5,6 +5,7 @@
 int main() {
     
     d1_execute();
+    d2_execute();
 
     return 0;
 }
