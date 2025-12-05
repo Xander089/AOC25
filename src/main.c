@@ -7,8 +7,8 @@ int main()
     // d1_execute();
     // d2_execute();
     // d3_ecxecute();
-    d4_ecxecute();
-    d5_ecxecute();
+    d4_execute();
+    // d5_ecxecute();
 
     return 0;
 }
