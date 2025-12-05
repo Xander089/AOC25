@@ -2,34 +2,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define NEWLINE_CHAR 10
 #define LINE_LEN 140
+#define IDX(r, c) ((r) * LINE_LEN + (c))
 
-void printGrid(int **grid)
+void printGrid(uint8_t *grid)
 {
     for (int i = 0; i < LINE_LEN; i++)
     {
         for (int j = 0; j < LINE_LEN; j++)
         {
-            printf("%d ", grid[i][j]);
+            printf("%d ", grid[IDX(i, j)]);
         }
         printf("\n");
     }
 }
 
-void scanLine(char *line, int *row)
+void scanLine(char *line, uint8_t *row)
 {
-    int cursor = 0;
-    while (cursor < LINE_LEN)
+    for (int cursor = 0; cursor < LINE_LEN; cursor++)
     {
-        int numchar = line[cursor] == '.' ? 0 : 1;
-        row[cursor] = numchar;
-        cursor++;
+        row[cursor] = (line[cursor] == '.') ? 0 : 1;
     }
 }
 
-void scan(char *fileName, int **grid)
+void scan(char *fileName, uint8_t *grid)
 {
     FILE *file = fopen(fileName, "r");
     if (file == NULL)
@@ -40,105 +39,62 @@ void scan(char *fileName, int **grid)
 
     char buffer[LINE_LEN + 2]; // +2 for newline and null terminator
     int row = 0;
-    while (fgets(buffer, sizeof(buffer), file) != NULL)
+    while (row < LINE_LEN && fgets(buffer, sizeof(buffer), file) != NULL)
     {
-        scanLine(buffer, grid[row++]);
+        for (int c = 0; c < LINE_LEN; c++)
+            grid[IDX(row, c)] = (buffer[c] == '.') ? 0 : 1;
+        row++;
     }
 
     fclose(file);
 }
 
-int count(int **grid, int row, int col)
+int count(uint8_t *grid, int row, int col)
 {
-    int leftTop = row == 0 && col == 0;
-    int rightTop = row == 0 && col == LINE_LEN - 1;
-    int leftBottom = row == LINE_LEN - 1 && col == 0;
-    int rightBottom = row == LINE_LEN - 1 && col == LINE_LEN - 1;
-
-    int topRow = (row == 0) && !(leftTop || rightTop);
-    int bottomRow = (row == LINE_LEN - 1) && !(leftBottom || rightBottom);
-    int leftCol = (col == 0) && !(leftTop || leftBottom);
-    int rightCol = (col == LINE_LEN - 1) && !(rightTop || rightBottom);
-
-    if (leftTop)
+    int cnt = 0;
+    for (int dr = -1; dr <= 1; dr++)
     {
-        return grid[row][col + 1] + grid[row + 1][col] + grid[row + 1][col + 1];
+        int rr = row + dr;
+        if (rr < 0 || rr >= LINE_LEN)
+            continue;
+        for (int dc = -1; dc <= 1; dc++)
+        {
+            int cc = col + dc;
+            if (cc < 0 || cc >= LINE_LEN)
+                continue;
+            if (dr == 0 && dc == 0)
+                continue;
+            cnt += grid[IDX(rr, cc)];
+        }
     }
-    if (rightTop)
-    {
-        return grid[row][col - 1] + grid[row + 1][col] + grid[row + 1][col - 1];
-    }
-    if (leftBottom)
-    {
-        return grid[row - 1][col] + grid[row][col + 1] + grid[row - 1][col + 1];
-    }
-    if (rightBottom)
-    {
-        return grid[row - 1][col] + grid[row][col - 1] + grid[row - 1][col - 1];
-    }
-    if (topRow)
-    {
-        return grid[row][col - 1] + grid[row][col + 1] + grid[row + 1][col - 1] + grid[row + 1][col] + grid[row + 1][col + 1];
-    }
-    if (bottomRow)
-    {
-        return grid[row - 1][col - 1] + grid[row - 1][col] + grid[row - 1][col + 1] + grid[row][col - 1] + grid[row][col + 1];
-    }
-    if (leftCol)
-    {
-        return grid[row - 1][col] + grid[row - 1][col + 1] + grid[row][col + 1] + grid[row + 1][col] + grid[row + 1][col + 1];
-    }
-    if (rightCol)
-    {
-        return grid[row - 1][col - 1] + grid[row - 1][col] + grid[row][col - 1] + grid[row + 1][col - 1] + grid[row + 1][col];
-    }
-    return grid[row - 1][col - 1] + grid[row - 1][col] + grid[row - 1][col + 1] + grid[row][col - 1] + grid[row][col + 1] + grid[row + 1][col - 1] + grid[row + 1][col] + grid[row + 1][col + 1];
+    return cnt;
 }
 
-int **crateGrid(int size)
-{
-    int **grid = (int **)malloc(size * sizeof(int *));
-    for (int i = 0; i < size; i++)
-    {
-        grid[i] = (int *)malloc(size * sizeof(int));
-    }
-    return grid;
-}
-
-void freeGrid(int **grid)
-{
-    for (int i = 0; i < LINE_LEN; i++)
-    {
-        free(grid[i]);
-    }
-    free(grid);
-}
-
-int firstScan(int **grid, int *validIndexes)
+int findValidIndexes(uint8_t *grid, int *validIndexes)
 {
     int index = 0;
-    for (int i = 0; i < LINE_LEN; i++)
-        for (int j = 0; j < LINE_LEN; j++)
-        {
-            if (grid[i][j] != 0)
-                validIndexes[index++] = i * LINE_LEN + j;
-        }
+    for (int i = 0; i < LINE_LEN * LINE_LEN; i++)
+    {
+        if (grid[i] != 0)
+            validIndexes[index++] = i;
+    }
     return index;
 }
 
 long d4_execute()
 {
     char *fileName = "input4.txt";
-    int **grid = crateGrid(LINE_LEN);
-
+    uint8_t *grid = (uint8_t *)malloc(LINE_LEN * LINE_LEN * sizeof(uint8_t));
     scan(fileName, grid); // populate the grid
-
+    // int -> max integer = 2147483647, so LINE_LEN * LINE_LEN = 19600 fits well within this limit
+    // uint8_t -> max integer = 255, so we can use it to represent presence (1) or absence (0)
     int *validIndexes = (int *)malloc(LINE_LEN * LINE_LEN * sizeof(int));
     memset(validIndexes, -1, LINE_LEN * LINE_LEN * sizeof(int));
-    int validCount = firstScan(grid, validIndexes);
+    int validCount = findValidIndexes(grid, validIndexes);
+
     int result = 0;
     int removedElements = 1;
-    int lastValid = -1;
+
     while (removedElements > 0)
     {
         removedElements = 0;
@@ -147,27 +103,23 @@ long d4_execute()
             if (validIndexes[i] == -1)
                 continue; // skip already removed elements
 
-            int row = validIndexes[i] / LINE_LEN;
-            int col = validIndexes[i] % LINE_LEN;
+            int idx = validIndexes[i];
+            int row = idx / LINE_LEN;
+            int col = idx % LINE_LEN;
 
             // requirement is to check for less than 4 neighbors
             if (count(grid, row, col) < 4)
             {
                 removedElements += 1;
-                grid[row][col] = 0;   // remove the element
-                validIndexes[i] = -1; // mark as removed
-            }
-            else
-            {
-                lastValid = i;
+                grid[IDX(row, col)] = 0; // remove the element
+                validIndexes[i] = -1;    // mark as removed
             }
         }
 
-        validCount = lastValid + 1;
         result += removedElements;
     }
 
-    freeGrid(grid);
+    free(grid);
     free(validIndexes);
     printf("Result: %d\n", result);
 
