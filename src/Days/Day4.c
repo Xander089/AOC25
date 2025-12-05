@@ -94,18 +94,30 @@ int count(int **grid, int row, int col)
     return grid[row - 1][col - 1] + grid[row - 1][col] + grid[row - 1][col + 1] + grid[row][col - 1] + grid[row][col + 1] + grid[row + 1][col - 1] + grid[row + 1][col] + grid[row + 1][col + 1];
 }
 
+int **crateGrid(int size)
+{
+    int **grid = (int **)malloc(size * sizeof(int *));
+    for (int i = 0; i < size; i++)
+    {
+        grid[i] = (int *)malloc(size * sizeof(int));
+    }
+    return grid;
+}
+
+void freeGrid(int **grid)
+{
+    for (int i = 0; i < LINE_LEN; i++)
+    {
+        free(grid[i]);
+    }
+    free(grid);
+}
+
 long d4_execute()
 {
     char *fileName = "input4.txt";
-
-    int **grid = (int **)malloc(LINE_LEN * sizeof(int *));
-    for (int i = 0; i < LINE_LEN; i++)
-    {
-        grid[i] = (int *)malloc(LINE_LEN * sizeof(int));
-    }
-
-    // populate the grid
-    scan(fileName, grid);
+    int **grid = crateGrid(LINE_LEN);
+    scan(fileName, grid); // populate the grid
 
     int result = 0;
     int removedElements = 1;
@@ -130,14 +142,9 @@ long d4_execute()
         result += removedElements;
     }
 
-    printf("Result: %d\n", result);
+    freeGrid(grid);
 
-    // de allocate the grid
-    for (int i = 0; i < LINE_LEN; i++)
-    {
-        free(grid[i]);
-    }
-    free(grid);
+    printf("Result: %d\n", result);
 
     return 0;
 }
