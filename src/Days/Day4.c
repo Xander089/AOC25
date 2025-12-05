@@ -8,6 +8,10 @@
 #define LINE_LEN 140
 #define IDX(r, c) ((r) * LINE_LEN + (c))
 
+typedef int bool;
+#define true 1
+#define false 0
+
 void printGrid(uint8_t *grid)
 {
     for (int i = 0; i < LINE_LEN; i++)
@@ -122,6 +126,6 @@ long d4_execute()
     free(grid);
     free(validIndexes);
     printf("Result: %d\n", result);
-
+    bool debug = false;
     return 0;
 }
