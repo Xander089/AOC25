@@ -1,6 +1,7 @@
 #include "Day4.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define NEWLINE_CHAR 10
 #define LINE_LEN 140
@@ -113,37 +114,61 @@ void freeGrid(int **grid)
     free(grid);
 }
 
+int firstScan(int **grid, int *validIndexes)
+{
+    int index = 0;
+    for (int i = 0; i < LINE_LEN; i++)
+        for (int j = 0; j < LINE_LEN; j++)
+        {
+            if (grid[i][j] != 0)
+                validIndexes[index++] = i * LINE_LEN + j;
+        }
+    return index;
+}
+
 long d4_execute()
 {
     char *fileName = "input4.txt";
     int **grid = crateGrid(LINE_LEN);
+
     scan(fileName, grid); // populate the grid
 
+    int *validIndexes = (int *)malloc(LINE_LEN * LINE_LEN * sizeof(int));
+    memset(validIndexes, -1, LINE_LEN * LINE_LEN * sizeof(int));
+    int validCount = firstScan(grid, validIndexes);
     int result = 0;
     int removedElements = 1;
+    int lastValid = -1;
     while (removedElements > 0)
     {
         removedElements = 0;
-        for (int i = 0; i < LINE_LEN; i++)
-            for (int j = 0; j < LINE_LEN; j++)
+        for (int i = 0; i < validCount; i++)
+        {
+            if (validIndexes[i] == -1)
+                continue; // skip already removed elements
+
+            int row = validIndexes[i] / LINE_LEN;
+            int col = validIndexes[i] % LINE_LEN;
+
+            // requirement is to check for less than 4 neighbors
+            if (count(grid, row, col) < 4)
             {
-                // skip the already removed elements
-                if (grid[i][j] == 0)
-                    continue;
-
-                // requirement is to check for less than 4 neighbors
-                if (count(grid, i, j) < 4)
-                {
-                    removedElements += 1;
-                    grid[i][j] = 0; // remove the element
-                }
+                removedElements += 1;
+                grid[row][col] = 0;   // remove the element
+                validIndexes[i] = -1; // mark as removed
             }
+            else
+            {
+                lastValid = i;
+            }
+        }
 
+        validCount = lastValid + 1;
         result += removedElements;
     }
 
     freeGrid(grid);
-
+    free(validIndexes);
     printf("Result: %d\n", result);
 
     return 0;
