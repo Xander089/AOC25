@@ -15,6 +15,8 @@ add_executable(app
     src/Days/Day1.c
     src/Days/Day2.c
     src/Days/Day3.c
+    src/Days/Day4.c
+    src/Days/Day5.c
 )
 
 target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR}/src/DataStructures)
